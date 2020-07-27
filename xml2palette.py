@@ -4,7 +4,9 @@ import sys
 import getopt
 import xml.etree.ElementTree as ET
 import json
+import uuid
 
+next_key = -1
 
 def get_filenames_from_command_line(argv):
     inputfile = ''
@@ -30,12 +32,57 @@ def get_filenames_from_command_line(argv):
     return inputfile, outputfile
 
 
-# TODO: incomplete
-def generate_uuid():
-    return "9db02940-b899-4d39-9c31-d1c779bc14eb";
+def get_next_key():
+    global next_key
+
+    next_key -= 1
+
+    return next_key + 1
 
 
-def create_palette_node(text, description, category, categoryType):
+def create_port(name):
+    return {
+        "Id": str(uuid.uuid4()),
+        "IdText": name
+    }
+
+
+def create_fields(category):
+    if category == "DynlibApp":
+        return [
+            {
+                "text": "Execution time",
+                "name": "execution_time",
+                "value": "5"
+            }, {
+                "text": "Num CPUs",
+                "name": "num_cpus",
+                "value": "1"
+            }, {
+                "text": "Group start",
+                "name": "group_start",
+                "value": "0"
+            }, {
+                "text": "Library path",
+                "name": "libpath",
+                "value": ""
+            }]
+    else:
+        print("Unknown category: " + category + ". Unable to create fields.")
+        return []
+
+
+# NOTE: color, x, y, width, height are not specified in palette node, they will be set by the EAGLE importer
+def create_palette_node(text, description, category, categoryType, inputPorts, outputPorts):
+    newInputPorts = []
+    newOutputPorts = []
+
+    for inputPort in inputPorts:
+        newInputPorts.append(create_port(inputPort))
+
+    for outputPort in outputPorts:
+        newOutputPorts.append(create_port(outputPort))
+
     return {
         "category": category,
         "categoryType": categoryType,
@@ -43,15 +90,10 @@ def create_palette_node(text, description, category, categoryType):
         "isGroup": False,
         "canHaveInputs": True,
         "canHaveOutputs": True,
-        "color": "#1C2833",
         "drawOrderHint": 0,
-        "key": -2,
+        "key": get_next_key(),
         "text": text,
         "description": description,
-        "x": 300,
-        "y": 100,
-        "width": 200,
-        "height": 200,
         "collapsed": False,
         "showPorts": False,
         "streaming": False,
@@ -64,30 +106,13 @@ def create_palette_node(text, description, category, categoryType):
         "inputApplicationType": "Unknown",
         "outputApplicationType": "Unknown",
         "exitApplicationType": "None",
-        "inputPorts": [
-            {
-                "Id": generate_uuid(),
-                "IdText": "event"
-            }
-        ],
-        "outputPorts": [
-            {
-                "Id": generate_uuid(),
-                "IdText": "event"
-            }
-        ],
+        "inputPorts": newInputPorts,
+        "outputPorts": newOutputPorts,
         "inputLocalPorts": [],
         "outputLocalPorts": [],
         "inputAppFields": [],
         "outputAppFields": [],
-        "fields": [
-            {
-                "text": "Arg01",
-                "name": "arg01",
-                "value": "echo",
-                "description": ""
-            }
-        ]
+        "fields": create_fields(category)
     }
 
 
@@ -125,8 +150,15 @@ if __name__ == "__main__":
     #print(xml_root.tag)
 
     # debug : add a sample node
-    n = create_palette_node("text", "description", "DynlibApp", "Application")
-    nodes.append(n)
+    n0 = create_palette_node("text", "description", "DynlibApp", "Application", ["event"], ["event"])
+    n1 = create_palette_node("text", "description", "DynlibApp", "Application", ["event"], ["event"])
+
+    nodes.append(n0)
+    nodes.append(n1)
+
+    # debug
+    #print("add node: " + str(n0['key']))
+    #print("add node: " + str(n1['key']))
 
     # write the output json file
     write_palette_json(outputfile, nodes)
