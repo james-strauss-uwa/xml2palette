@@ -104,6 +104,10 @@ def create_palette_node_from_params(params):
 
         if key == "category":
             category = value
+        elif key == "text":
+            text = value
+        elif key == "description":
+            description = value
         elif key == "gitrepo":
             gitrepo = value
         elif key == "version":
@@ -141,7 +145,7 @@ def create_palette_node_from_params(params):
     # create and return the node
     return {
         "category": category,
-        "categoryType": categoryType,
+        "categoryType": "Application",
         "isData": False,
         "isGroup": False,
         "canHaveInputs": True,
@@ -195,7 +199,18 @@ def process_compounddef(compounddef):
     #print("compounddef: " + compounddef.attrib['id'])
     result = []
 
-    # get child of componddef called "detaileddescription"
+    # get child of compounddef called "briefdescription"
+    briefdescription = None
+    for child in compounddef:
+        if child.tag == "briefdescription":
+            briefdescription = child
+            break
+
+    if briefdescription is not None:
+        if len(briefdescription) > 0:
+            result.append({"key":"text", "direction":None, "value":briefdescription[0].text.strip()})
+
+    # get child of compounddef called "detaileddescription"
     detaileddescription = None
     for child in compounddef:
         if child.tag == "detaileddescription":
@@ -211,12 +226,18 @@ def process_compounddef(compounddef):
 
     # search children of detaileddescription node for a para node with "simplesect" children, who have "title" children with text "EAGLE_START" and "EAGLE_END"
     para = None
+    description = ""
     for ddchild in detaileddescription:
         if ddchild.tag == "para":
+            if ddchild.text is not None:
+                description += ddchild.text + "\n"
             for pchild in ddchild:
                 if pchild.tag == "simplesect":
                     para = ddchild
-                    break
+
+    # add description
+    if description != "":
+        result.append({"key":"description", "direction":None, "value":description.strip()})
 
     # check that we found the correct para
     if para is None:
@@ -257,8 +278,8 @@ def process_compounddef(compounddef):
 if __name__ == "__main__":
     (inputfile, outputfile) = get_filenames_from_command_line(sys.argv[1:])
 
-    print('Input file: ' + inputfile)
-    print('Output file: ' + outputfile)
+    #print('Input file: ' + inputfile)
+    #print('Output file: ' + outputfile)
 
     # init nodes array
     nodes = []
@@ -270,7 +291,9 @@ if __name__ == "__main__":
 
     for compounddef in xml_root:
         params = process_compounddef(compounddef)
-        if len(params) > 0:
+
+        # if no params were found, or only the name and description were found, then don't bother creating a node
+        if len(params) > 2:
             #print("params: " + str(params))
 
             # create a node
