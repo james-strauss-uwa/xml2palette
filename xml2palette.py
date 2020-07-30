@@ -64,7 +64,15 @@ def add_required_fields_for_category(fields, category):
             fields.append(create_field("Group start", "group_start", 0, ""))
         if find_field_by_name(fields, "libpath") is None:
             fields.append(create_field("Library path", "libpath", "", ""))
-
+    elif category == "PythonApp":
+        if find_field_by_name(fields, "execution_time") is None:
+            fields.append(create_field("Execution time", "execution_time", 5, ""))
+        if find_field_by_name(fields, "num_cpus") is None:
+            fields.append(create_field("Num CPUs", "num_cpus", 1, ""))
+        if find_field_by_name(fields, "group_start") is None:
+            fields.append(create_field("Group start", "group_start", 0, ""))
+        if find_field_by_name(fields, "appclass") is None:
+            fields.append(create_field("Appclass", "appclass", "test.graphsRepository", ""))
 
 def create_field(text, name, value, description):
     return {
