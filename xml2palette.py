@@ -47,30 +47,23 @@ def create_port(name):
     }
 
 
+def find_field_by_name(fields, name):
+    for field in fields:
+        if field['name'] == name:
+            return field
+    return None
+
+
 def add_required_fields_for_category(fields, category):
-    # if category == "DynlibApp":
-    #     return [
-    #         {
-    #             "text": "Execution time",
-    #             "name": "execution_time",
-    #             "value": "5"
-    #         }, {
-    #             "text": "Num CPUs",
-    #             "name": "num_cpus",
-    #             "value": "1"
-    #         }, {
-    #             "text": "Group start",
-    #             "name": "group_start",
-    #             "value": "0"
-    #         }, {
-    #             "text": "Library path",
-    #             "name": "libpath",
-    #             "value": ""
-    #         }]
-    # else:
-    #     print("Unknown category: " + category + ". Unable to create fields.")
-    #     return []
-    pass
+    if category == "DynlibApp":
+        if find_field_by_name(fields, "execution_time") is None:
+            fields.append(create_field("Execution time", "execution_time", 5, ""))
+        if find_field_by_name(fields, "num_cpus") is None:
+            fields.append(create_field("Num CPUs", "num_cpus", 1, ""))
+        if find_field_by_name(fields, "group_start") is None:
+            fields.append(create_field("Group start", "group_start", 0, ""))
+        if find_field_by_name(fields, "libpath") is None:
+            fields.append(create_field("Library path", "libpath", "", ""))
 
 
 def create_field(text, name, value, description):
