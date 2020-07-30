@@ -77,8 +77,6 @@ def create_field(text, name, value, description):
 
 # NOTE: color, x, y, width, height are not specified in palette node, they will be set by the EAGLE importer
 def create_palette_node_from_params(params):
-    gitrepo = ""
-    version = ""
     text = ""
     description = ""
     category = ""
@@ -101,10 +99,6 @@ def create_palette_node_from_params(params):
             text = value
         elif key == "description":
             description = value
-        elif key == "gitrepo":
-            gitrepo = value
-        elif key == "version":
-            version = value
         elif key.startswith("param/"):
             # parse the param key into name, type etc
             (param, name, default_value, type) = key.split("/")
@@ -129,8 +123,6 @@ def create_palette_node_from_params(params):
                     outputLocalPorts.append(create_port(name))
                 else:
                     print("ERROR: Unknown local-port direction: " + direction)
-        else:
-            print("ERROR: unknown param: " + key)
 
     # add extra fields that must be included for the category
     add_required_fields_for_category(fields, category)
@@ -169,7 +161,7 @@ def create_palette_node_from_params(params):
     }
 
 
-def write_palette_json(outputfile, nodes):
+def write_palette_json(outputfile, nodes, gitrepo, version):
     palette = {
         "modelData": {
             "fileType": "palette",
@@ -177,8 +169,8 @@ def write_palette_json(outputfile, nodes):
             "repoBranch": "master",
             "repo": "ICRAR/EAGLE_test_repo",
             "filePath": outputfile,
-            "sha": "",
-            "git_url": ""
+            "sha": version,
+            "git_url": gitrepo
         },
         "nodeDataArray": nodes,
         "linkDataArray": []
@@ -274,6 +266,9 @@ if __name__ == "__main__":
     #print('Input file: ' + inputfile)
     #print('Output file: ' + outputfile)
 
+    gitrepo = ""
+    version = ""
+
     # init nodes array
     nodes = []
 
@@ -287,11 +282,21 @@ if __name__ == "__main__":
 
         # if no params were found, or only the name and description were found, then don't bother creating a node
         if len(params) > 2:
-            #print("params: " + str(params))
+            # print("params: " + str(params))
 
             # create a node
             n = create_palette_node_from_params(params)
             nodes.append(n)
+
+        # check if gitrepo and version params were found and cache the values
+        for param in params:
+            key = param['key']
+            value = param['value']
+
+            if key == "gitrepo":
+                gitrepo = value
+            elif key == "version":
+                version = value
 
     # debug : add a sample node
     #n0 = create_palette_node("text", "description", "DynlibApp", "Application", ["event"], ["event"])
@@ -305,4 +310,4 @@ if __name__ == "__main__":
     #print("add node: " + str(n1['key']))
 
     # write the output json file
-    write_palette_json(outputfile, nodes)
+    write_palette_json(outputfile, nodes, gitrepo, version)
