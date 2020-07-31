@@ -261,7 +261,10 @@ def process_compounddef(compounddef):
                 key = pichild[0].text.strip()
                 direction = pichild[0].attrib.get("direction", "").strip()
             elif pichild.tag == "parameterdescription":
-                value = pichild[0].text.strip()
+                if key == "gitrepo":
+                    value = pichild[0][0].text.strip()
+                else:
+                    value = pichild[0].text.strip()
         #print("key: " + key + " direction: " + str(direction) + " value: " + value)
         result.append({"key":key,"direction":direction,"value":value})
 
