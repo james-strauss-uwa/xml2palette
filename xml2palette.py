@@ -201,7 +201,11 @@ def process_compounddef(compounddef):
 
     if briefdescription is not None:
         if len(briefdescription) > 0:
-            result.append({"key":"text", "direction":None, "value":briefdescription[0].text.strip()})
+            if briefdescription[0].text is None:
+                print("No brief description text")
+                result.append({"key":"text", "direction":None, "value":""})
+            else:
+                result.append({"key":"text", "direction":None, "value":briefdescription[0].text.strip()})
 
     # get child of compounddef called "detaileddescription"
     detaileddescription = None
@@ -262,9 +266,17 @@ def process_compounddef(compounddef):
                 direction = pichild[0].attrib.get("direction", "").strip()
             elif pichild.tag == "parameterdescription":
                 if key == "gitrepo":
-                    value = pichild[0][0].text.strip()
+                    if pichild[0].text is None:
+                        print("No gitrepo text")
+                        value = ""
+                    else:
+                        value = pichild[0][0].text.strip()
                 else:
-                    value = pichild[0].text.strip()
+                    if pichild[0].text is None:
+                        print("No key text (key: " + key + ")")
+                        value = ""
+                    else:
+                        value = pichild[0].text.strip()
         #print("key: " + key + " direction: " + str(direction) + " value: " + value)
         result.append({"key":key,"direction":direction,"value":value})
 
